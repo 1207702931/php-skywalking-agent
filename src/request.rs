@@ -287,15 +287,16 @@ fn create_request_context(
     trace!("Propagation: {:?}", &propagation);
 
     let mut ctx = tracer::create_trace_context();
-    let c_ctx = ctx.trace_id();
-    // 定义一个PHP常量，常量值等于 skywalking 的 trace_id
-    call("define", [ZVal::from("SW_TRACE_ID"), ZVal::from(c_ctx)]).expect("define SW_TRACE_ID error");
 
     let operation_name = format!("{}:{}", method, url.path());
     let mut span = match propagation {
         Some(propagation) => ctx.create_entry_span_with_propagation(&operation_name, &propagation),
         None => ctx.create_entry_span(&operation_name),
     };
+
+    let c_ctx = ctx.trace_id();
+    // 定义一个PHP常量，常量值等于 skywalking 的 trace_id
+    call("define", [ZVal::from("SW_TRACE_ID"), ZVal::from(c_ctx)]).expect("define SW_TRACE_ID error");
 
     let mut span_object = span.span_object_mut();
     span_object.component_id = COMPONENT_PHP_ID;
